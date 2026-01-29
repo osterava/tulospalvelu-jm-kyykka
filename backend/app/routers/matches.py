@@ -41,25 +41,40 @@ def generate_round_robin_matches(team_names, start_time="10:00", field="kenttä 
 
 @router.post("/generate_group/{group_number}", response_model=list[dict])
 def generate_group_matches_endpoint(group_number: int, db: Session = Depends(get_db)):
-    """
-    Generoi lohkon sisäiset ottelut automaattisesti, tallentaa tietokantaan ja palauttaa JSON.
-    Maksimissaan 4 joukkuetta per lohko.
-    """
+    created_matches = create_group_matches(db, group_number)
+    return [
+        {
+            "id": m.id,
+            "home_team": m.home_team.name,
+            "away_team": m.away_team.name,
+            "time": m.time,
+            "field": m.field
+        }
+        for m in created_matches
+    ]
 
+
+def create_group_matches(db: Session, group_number: int, field: str = "Kenttä 1"):
+    """
+    Luo lohkon ottelut tietokantaan.
+    Maksimissaan 4 joukkuetta per lohko.
+    Palauttaa luodut Match-objektit listana.
+    """
     assignments = db.query(GroupAssignment).filter(GroupAssignment.group_number == group_number).all()
     if not assignments:
-        raise HTTPException(status_code=404, detail="Lohkoa ei löytynyt")
+        return []
 
     team_names = [db.query(Team).get(ga.team_id).name for ga in assignments]
+    matches_to_create = generate_round_robin_matches(team_names, field=field)
 
-    matches_to_create = generate_round_robin_matches(team_names)
-
-    result = []
+    created_matches = []
     for m in matches_to_create:
         home_obj = db.query(Team).filter(Team.name == m["home_team"]).first()
         away_obj = db.query(Team).filter(Team.name == m["away_team"]).first()
         existing = db.query(Match).filter(
-            (Match.home_team_id == home_obj.id) & (Match.away_team_id == away_obj.id) & (Match.time == m["time"])
+            (Match.home_team_id == home_obj.id) &
+            (Match.away_team_id == away_obj.id) &
+            (Match.time == m["time"])
         ).first()
         if existing:
             continue
@@ -73,16 +88,9 @@ def generate_group_matches_endpoint(group_number: int, db: Session = Depends(get
         db.add(match_obj)
         db.commit()
         db.refresh(match_obj)
+        created_matches.append(match_obj)
 
-        result.append({
-            "id": match_obj.id,
-            "home_team": m["home_team"],
-            "away_team": m["away_team"],
-            "time": match_obj.time,
-            "field": match_obj.field
-        })
-
-    return result
+    return created_matches
 
 @router.get("/team/{team_id}", response_model=list[dict])
 def get_team_matches(team_id: int, db: Session = Depends(get_db)):

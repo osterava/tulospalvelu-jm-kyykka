@@ -22,6 +22,7 @@ def create_group_assignment(assignment: GroupAssignmentCreate, db: Session = Dep
     db.refresh(db_assignment)
     return db_assignment
 
-@router.get("/", response_model=list[GroupAssignmentSchema])
-def list_group_assignments(db: Session = Depends(get_db)):
-    return db.query(GroupAssignment).all()
+@router.get("/", response_model=list[int])
+def get_all_groups(db: Session = Depends(get_db)):
+    group_numbers = db.query(GroupAssignment.group_number).distinct().order_by(GroupAssignment.group_number).all()
+    return [g[0] for g in group_numbers]
