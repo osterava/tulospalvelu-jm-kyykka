@@ -10,6 +10,10 @@ class MatchBase(BaseModel):
 class MatchCreate(MatchBase):
     pass
 
+class MatchScoreUpdate(BaseModel):
+    home_score: int
+    away_score: int
+
 class MatchRead(MatchBase):
     id: int
 

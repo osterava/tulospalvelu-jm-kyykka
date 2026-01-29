@@ -11,6 +11,11 @@ export function GroupTable({ teams }: Props) {
     return <p className={styles.empty}>Lohkotietoja ei ole saatavilla.</p>
   }
 
+  const sortedTeams = [...teams].sort((a, b) => {
+    if (b.points !== a.points) return b.points - a.points
+    return b.total_score - a.total_score
+  })
+
   return (
     <table className={styles.table}>
       <thead>
@@ -24,7 +29,7 @@ export function GroupTable({ teams }: Props) {
         </tr>
       </thead>
       <tbody>
-        {teams.map(team => (
+        {sortedTeams.map(team => (
           <tr key={team.team}>
             <td data-label="Joukkue">
               <Link

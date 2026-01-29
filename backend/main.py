@@ -22,4 +22,3 @@ app.include_router(login.router)
 app.include_router(teams.router)
 app.include_router(matches.router)
 app.include_router(groups.router)
-

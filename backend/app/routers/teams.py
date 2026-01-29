@@ -1,4 +1,3 @@
-# app/routers/teams.py
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 from datetime import datetime
@@ -44,28 +43,28 @@ def get_team_detail(team_name: str, db: Session = Depends(get_db)):
     group_assignment = db.query(GroupAssignment).filter(GroupAssignment.team_id == team.id).first()
     if not group_assignment:
         raise HTTPException(status_code=404, detail="Team not assigned to any group")
-
     group_number = group_assignment.group_number
 
     group_assignments = db.query(GroupAssignment).filter(GroupAssignment.group_number == group_number).all()
     group_team_ids = [ga.team_id for ga in group_assignments]
-    teams_in_group = db.query(Team).filter(Team.id.in_(group_team_ids)).all()
 
-    group_teams = []
-    for ga in group_assignments:
-        t = db.query(Team).get(ga.team_id)
-        group_teams.append({
-            "team": t.name,
-            "wins": ga.wins,
-            "losses": ga.losses,
-            "draws": ga.draws,
-            "points": ga.points,
-            "total_score": ga.total_score
-        })
+    teams_in_group = db.query(Team).filter(Team.id.in_(group_team_ids)).all()
+    team_id_to_name = {t.id: t.name for t in teams_in_group}
+
+    group_teams = [
+        StandingEntry(
+            team=team_id_to_name[ga.team_id],
+            wins=ga.wins,
+            losses=ga.losses,
+            draws=ga.draws,
+            points=ga.points,
+            total_score=ga.total_score
+        )
+        for ga in group_assignments
+    ]
 
     upcoming_matches = db.query(Match).filter(
-        ((Match.home_team_id == team.id) | (Match.away_team_id == team.id)) &
-        (Match.time >= datetime.now())
+    (Match.home_team_id == team.id) | (Match.away_team_id == team.id)
     ).order_by(Match.time).all()
 
     upcoming_matches_list = [
@@ -75,7 +74,8 @@ def get_team_detail(team_name: str, db: Session = Depends(get_db)):
             away_team=db.query(Team).get(m.away_team_id).name,
             time=m.time,
             field=m.field
-        ) for m in upcoming_matches
+        )
+        for m in upcoming_matches
     ]
 
     return TeamDetail(
