@@ -134,26 +134,6 @@
   padding-bottom: 5px;
 }
 
-.table {
-  margin: 0 auto;
-  padding: 5px 0 5px 0;
-  width: 100%;
-}
-
-.table th,
-.table td {
-  padding: 10px;
-}
-
-.table th {
-  text-align: left;
-  border-bottom: 1px solid black;
-}
-
-.table td {
-  border-bottom: 1px solid black;
-}
-
 @media (max-width: 726px) {
   .page {
     min-height: 60vw;

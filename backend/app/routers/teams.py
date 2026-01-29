@@ -36,15 +36,12 @@ def get_team_basic(team_name: str, db: Session = Depends(get_db)):
 @router.get("/{team_name}/details", response_model=TeamDetail)
 def get_team_detail(team_name: str, db: Session = Depends(get_db)):
     decoded_name = unquote(team_name)
-    print("REQUEST TEAM:", decoded_name)
 
     team = db.query(Team).filter(Team.name == decoded_name).first()
-    print("TEAM FOUND:", team)
     if not team:
         raise HTTPException(status_code=404, detail=f"Team '{decoded_name}' not found")
 
     group_assignment = db.query(GroupAssignment).filter(GroupAssignment.team_id == team.id).first()
-    print("GROUP ASSIGNMENT:", group_assignment)
     if not group_assignment:
         raise HTTPException(status_code=404, detail="Team not assigned to any group")
 
@@ -77,6 +74,7 @@ def get_team_detail(team_name: str, db: Session = Depends(get_db)):
             home_team=db.query(Team).get(m.home_team_id).name,
             away_team=db.query(Team).get(m.away_team_id).name,
             time=m.time,
+            field=m.field
         ) for m in upcoming_matches
     ]
 

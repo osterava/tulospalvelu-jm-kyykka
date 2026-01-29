@@ -1,0 +1,83 @@
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+  font-size: 0.95rem;
+  color: #000000;
+}
+
+.table th,
+.table td {
+  padding: 0.6rem 0.75rem;
+  border-bottom: 1px solid #f8f1f1;
+  text-align: left;
+  font-weight: bold;
+}
+
+.table td {
+    background-color: #9c9ea1;
+}
+
+.table thead {
+  background-color: #d3d7dd;
+}
+
+.table tbody tr:hover {
+  background-color: #f0f4ff;
+}
+
+.empty {
+  margin-top: 0.5rem;
+  color: #666;
+  font-style: italic;
+}
+
+.teamLink {
+  color: #1f57e4;
+  text-decoration: underline;
+  font-weight: 500;
+}
+
+.teamLink:hover {
+  text-decoration: underline;
+}
+
+.teamLink:focus-visible {
+  outline: 2px solid #1a5cff;
+  outline-offset: 2px;
+}
+
+
+@media (max-width: 768px) {
+  .table thead {
+    display: none;
+  }
+
+  .table,
+  .table tbody,
+  .table tr,
+  .table td {
+    display: block;
+    width: 100%;
+  }
+
+  .table tr {
+    margin-bottom: 1rem;
+    border-radius: 8px;
+    padding: 0.75rem;
+    background-color: #fff;
+  }
+
+  .table td {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.4rem 0.2rem;
+    border-radius: 3px;
+  }
+
+  .table td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: #444;
+  }
+}

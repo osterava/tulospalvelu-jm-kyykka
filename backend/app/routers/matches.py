@@ -45,6 +45,7 @@ def list_matches(team: str = Query(None), db: Session = Depends(get_db)):
             "id": m.id,
             "team": my_team,
             "opponent": opponent,
-            "time": m.time
+            "time": m.time,
+            "field": m.field
         })
     return result

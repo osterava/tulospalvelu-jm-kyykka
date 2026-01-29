@@ -3,62 +3,39 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import styles from '../../page.module.css'
+import { getTeamDetail } from '../../services/teamsService'
+import { TeamDetail } from '../components/types/team'
+import { UpcomingMatches } from '../components/UpcomingMatches'
+import { GroupTable } from '../components/GroupTable'
 
-interface Match {
-  id: number
-  home_team: string
-  away_team: string
-  time: string
-}
+export default function TeamPage() {
+  const { team: teamParam } = useParams<{ team: string }>()
+  const team = teamParam ? decodeURIComponent(teamParam) : ''
 
-interface GroupTeam {
-  team: string
-  wins: number
-  losses: number
-  draws: number
-  points: number
-  total_score: number
-}
-
-interface TeamDetail {
-  team: string
-  group: number
-  upcoming_matches: Match[]
-  group_teams: GroupTeam[]
-}
-
-export default function TeamMatches() {
-  const params = useParams()
-  const teamParam = params.team
-  const team = teamParam ? decodeURIComponent(teamParam as string) : ''
-  const [teamDetail, setTeamDetail] = useState<TeamDetail | null>(null)
+  const [data, setData] = useState<TeamDetail | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
 
   useEffect(() => {
     if (!team) return
 
-    const fetchTeamDetail = async () => {
+    const load = async () => {
       try {
-        const res = await fetch(
-          `http://localhost:8000/teams/${encodeURIComponent(team)}/details`
-        )
-        if (!res.ok) throw new Error('Fetch failed')
-        const data: TeamDetail = await res.json()
-        setTeamDetail(data)
-      } catch (err) {
-        console.error('Fetch failed', err)
+        const result = await getTeamDetail(team)
+        console.log(result)
+        setData(result)
+      } catch {
+        setError(true)
       } finally {
         setLoading(false)
       }
     }
 
-    fetchTeamDetail()
+    load()
   }, [team])
 
   if (loading) return <p>Ladataan...</p>
-  if (!teamDetail) return <p>Joukkuetta ei löytynyt</p>
-
-  const { upcoming_matches = [], group_teams = [], group = 0 } = teamDetail
+  if (error || !data) return <p>Joukkuetta ei löytynyt</p>
 
   return (
     <div className={styles.page}>
@@ -66,48 +43,10 @@ export default function TeamMatches() {
         <h1>{team}</h1>
 
         <h3>Tulevat ottelut</h3>
-        {upcoming_matches.length === 0 ? (
-          <p>Ei tulevia otteluita.</p>
-        ) : (
-          <ul>
-            {upcoming_matches.map((m) => (
-              <li key={m.id}>
-                {m.home_team} vs {m.away_team} —{' '}
-                {new Date(m.time).toLocaleString()}
-              </li>
-            ))}
-          </ul>
-        )}
+        <UpcomingMatches matches={data.upcoming_matches} />
 
-        <h3>Lohkopisteet – kierros 1</h3>
-        {group_teams.length === 0 ? (
-          <p>Lohkotietoja ei ole saatavilla.</p>
-        ) : (
-          <table className={styles.table}>
-            <thead>
-              <tr>
-                <th>Joukkue</th>
-                <th>Voitot</th>
-                <th>Häviöt</th>
-                <th>Tasapelit</th>
-                <th>Pisteet</th>
-                <th>Kokonaistulos</th>
-              </tr>
-            </thead>
-            <tbody>
-              {group_teams.map((s) => (
-                <tr key={s.team}>
-                  <td>{s.team}</td>
-                  <td>{s.wins}</td>
-                  <td>{s.losses}</td>
-                  <td>{s.draws}</td>
-                  <td>{s.points}</td>
-                  <td>{s.total_score}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
+        <h3>Lohkopisteet kierros 1</h3>
+        <GroupTable teams={data.group_teams} />
       </div>
     </div>
   )

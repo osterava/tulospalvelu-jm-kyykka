@@ -7,6 +7,7 @@ class MatchInfo(BaseModel):
     home_team: str
     away_team: str
     time: datetime
+    field: str
 
 
 class StandingEntry(BaseModel):
